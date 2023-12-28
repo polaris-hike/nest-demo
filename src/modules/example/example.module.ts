@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
 
 import { TestController } from './controllers/test.controller';
+import { FifthService } from './services/fifth.service';
 import { FirstService } from './services/first.service';
 import { FourthService } from './services/fourth.service';
 import { SecondService } from './services/second.service';
+import { SixthService } from './services/sixth.service';
 import { ThirdService } from './services/third.service';
+import { SeventhService } from './services/seventh.service';
+import { EighthService } from './services/eighth.service';
 
 const firstObject = {
     useValue: () => 'useValue提供者',
@@ -46,6 +50,10 @@ const firstInstance = new FirstService();
                 return factory.getPromise();
             },
         },
+        FifthService,
+        SixthService,
+        SeventhService,
+        EighthService,
     ],
     controllers: [TestController],
 })

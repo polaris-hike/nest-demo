@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class FirstService {
     useValue() {
-        return '';
+        return '11';
     }
 
     useId() {
