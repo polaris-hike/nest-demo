@@ -17,7 +17,9 @@ export const paginate = async <E extends ObjectLiteral>(
     const limit = isNil(options.limit) || options.limit < 1 ? 1 : options.limit;
     const page = isNil(options.page) || options.page < 1 ? 1 : options.page;
     const start = page >= 1 ? page - 1 : 0;
+    console.log('qb---------', qb);
     const totalItems = await qb.getCount();
+    console.log('totalItems:', totalItems);
     qb.take(limit).skip(start * limit);
     const items = await qb.getMany();
     const totalPages =
