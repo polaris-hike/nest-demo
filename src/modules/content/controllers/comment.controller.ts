@@ -8,7 +8,6 @@ import {
     Post,
     Query,
     SerializeOptions,
-    ValidationPipe,
 } from '@nestjs/common';
 
 import { CreateCommentDto, QueryCommentDto, QueryCommentTreeDto } from '../dtos';
@@ -21,15 +20,7 @@ export class CommentController {
     @Get('tree')
     @SerializeOptions({ groups: ['comment-tree'] })
     async tree(
-        @Query(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-            }),
-        )
+        @Query()
         query: QueryCommentTreeDto,
     ) {
         return this.service.findTrees(query);
@@ -38,13 +29,7 @@ export class CommentController {
     @Get()
     @SerializeOptions({ groups: ['comment-list'] })
     async list(
-        @Query(
-            new ValidationPipe({
-                transform: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-            }),
-        )
+        @Query()
         query: QueryCommentDto,
     ) {
         return this.service.paginate(query);
@@ -53,15 +38,7 @@ export class CommentController {
     @Post()
     @SerializeOptions({ groups: ['comment-detail'] })
     async store(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-            }),
-        )
+        @Body()
         data: CreateCommentDto,
     ) {
         return this.service.create(data);
