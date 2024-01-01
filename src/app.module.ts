@@ -4,21 +4,23 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { database } from './config';
+import { content, database, meilli } from './config';
 import { CoffeesModule } from './modules/coffees/coffees.module';
 import { ContentModule } from './modules/content/content.module';
 import { CoreModule } from './modules/core/core.module';
 import { AppFilter, AppIntercepter, AppPipe } from './modules/core/providers';
 import { DatabaseModule } from './modules/database/database.module';
 import { ExampleModule } from './modules/example/example.module';
+import { MeilliModule } from './modules/meilisearch/melli.module';
 
 @Module({
     imports: [
-        ContentModule,
+        ContentModule.forRoot(content),
         ExampleModule,
         CoffeesModule,
         CoreModule.forRoot(),
         DatabaseModule.forRoot(database),
+        MeilliModule.forRoot(meilli),
     ],
     controllers: [AppController],
     providers: [

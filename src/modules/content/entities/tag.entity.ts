@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { Column, Entity, ManyToMany, PrimaryColumn, Relation } from 'typeorm';
+import { Column, Entity, Index, ManyToMany, PrimaryColumn, Relation } from 'typeorm';
 
 import { PostEntity } from './post.entity';
 
@@ -12,6 +12,7 @@ export class TagEntity {
 
     @Expose()
     @Column({ comment: '标签名称' })
+    @Index({ fulltext: true })
     name: string;
 
     @Expose()

@@ -3,6 +3,7 @@ import {
     BaseEntity,
     Column,
     Entity,
+    Index,
     OneToMany,
     PrimaryColumn,
     Relation,
@@ -23,6 +24,7 @@ export class CategoryEntity extends BaseEntity {
 
     @Expose()
     @Column({ comment: '分类名称' })
+    @Index({ fulltext: true })
     name: string;
 
     @Expose({ groups: ['category-tree', 'category-list', 'category-detail'] })

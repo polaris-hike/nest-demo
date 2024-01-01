@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { isArray, isFunction, isNil, omit } from 'lodash';
+import { isArray, isFunction, isNil, omit, pick } from 'lodash';
 import { EntityNotFoundError, In, IsNull, Not, SelectQueryBuilder } from 'typeorm';
 
 import { SelectTrashMode } from '@/modules/database/constants';
@@ -12,7 +12,10 @@ import { CreatePostDto, QueryPostDto, UpdatePostDto } from '../dtos';
 import { PostEntity } from '../entities/post.entity';
 import { CategoryRepository, PostRepository, TagRepository } from '../repositories';
 
+import { SearchType } from '../types';
+
 import { CategoryService } from './category.service';
+import { SearchService } from './search.service';
 
 // 文章查询接口
 type FindParams = {
@@ -26,6 +29,8 @@ export class PostService {
         protected categoryRepository: CategoryRepository,
         protected categoryService: CategoryService,
         protected tagRepository: TagRepository,
+        protected searchService?: SearchService,
+        protected search_type: SearchType = 'against',
     ) {}
 
     /**
@@ -34,6 +39,12 @@ export class PostService {
      * @param callback 添加额外的查询
      */
     async paginate(options: QueryPostDto, callback?: QueryHook<PostEntity>) {
+        if (!isNil(this.searchService) && !isNil(options.search) && this.search_type === 'meilli') {
+            return this.searchService.search(
+                options.search,
+                pick(options, ['trashed', 'page', 'limit']),
+            );
+        }
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), options, callback);
         return paginate(qb, options);
     }
@@ -71,6 +82,7 @@ export class PostService {
                 : [],
         };
         const item = await this.repository.save(createPostDto);
+        if (!isNil(this.searchService)) await this.searchService.create(item);
 
         return this.detail(item.id);
     }
@@ -98,6 +110,7 @@ export class PostService {
                 .addAndRemove(data.tags, post.tags ?? []);
         }
         await this.repository.update(data.id, omit(data, ['id', 'tags', 'category']));
+        if (!isNil(this.searchService)) await this.searchService.update([post]);
         return this.detail(data.id);
     }
 
@@ -107,19 +120,29 @@ export class PostService {
      */
     async delete(ids: string[], trash?: boolean) {
         const items = await this.repository.find({
-            where: { id: In(ids) } as any,
+            where: { id: In(ids) },
             withDeleted: true,
         });
+        let result: PostEntity[] = [];
         if (trash) {
             // 对已软删除的数据再次删除时直接通过remove方法从数据库中清除
             const directs = items.filter((item) => !isNil(item.deletedAt));
             const softs = items.filter((item) => isNil(item.deletedAt));
-            return [
+            result = [
                 ...(await this.repository.remove(directs)),
                 ...(await this.repository.softRemove(softs)),
             ];
+            if (!isNil(this.searchService)) {
+                await this.searchService.delete(directs.map(({ id }) => id));
+                await this.searchService.update(softs);
+            }
+        } else {
+            result = await this.repository.remove(items);
+            if (!isNil(this.searchService)) {
+                await this.searchService.delete(result.map(({ id }) => id));
+            }
         }
-        return this.repository.remove(items);
+        return result;
     }
 
     /**
@@ -170,9 +193,41 @@ export class PostService {
 
         this.queryOrderBy(qb, orderBy);
         if (category) await this.queryByCategory(category, qb);
+        if (!isNil(options.search)) this.buildSearchQuery(qb, options.search);
         // 查询某个标签关联的文章
         if (tag) qb.where('tags.id = :id', { id: tag });
         if (callback) return callback(qb);
+        return qb;
+    }
+
+    protected async buildSearchQuery(qb: SelectQueryBuilder<PostEntity>, search: string) {
+        if (this.search_type === 'like') {
+            qb.andWhere('title LIKE :search', { search: `%${search}%` })
+                .orWhere('body LIKE :search', { search: `%${search}%` })
+                .orWhere('summary LIKE :search', { search: `%${search}%` })
+                .orWhere('category.name LIKE :search', {
+                    search: `%${search}%`,
+                })
+                .orWhere('tags.name LIKE :search', {
+                    search: `%${search}%`,
+                });
+        } else if (this.search_type === 'against') {
+            qb.andWhere('MATCH(title) AGAINST (:search IN BOOLEAN MODE)', {
+                search: `${search}*`,
+            })
+                .orWhere('MATCH(body) AGAINST (:search IN BOOLEAN MODE)', {
+                    search: `${search}*`,
+                })
+                .orWhere('MATCH(summary) AGAINST (:search IN BOOLEAN MODE)', {
+                    search: `${search}*`,
+                })
+                .orWhere('MATCH(category.name) AGAINST (:search IN BOOLEAN MODE)', {
+                    search: `${search}*`,
+                })
+                .orWhere('MATCH(tags.name) AGAINST (:search IN BOOLEAN MODE)', {
+                    search: `${search}*`,
+                });
+        }
         return qb;
     }
 
