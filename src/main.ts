@@ -16,8 +16,8 @@ async function bootstrap() {
     // 设置全局访问前缀
     app.setGlobalPrefix('api');
     // 启动后的输出
-    await app.listen(3100, () => {
-        console.log('api: http://localhost:3100');
+    await app.listen(3200, () => {
+        console.log('api: http://localhost:3200');
     });
 }
 bootstrap();
