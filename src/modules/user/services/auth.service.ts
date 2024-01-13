@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import { decrypt } from 'dotenv';
 
 import { ExtractJwt } from 'passport-jwt';
 
@@ -13,7 +12,7 @@ import { RegisterDto } from '../dtos/auth.dto';
 
 import { UserEntity } from '../entities/user.entity';
 
-import { defaultUserConfig } from '../helpers';
+import { decrypt, defaultUserConfig } from '../helpers';
 import { UserRepository } from '../repositories/user.repository';
 import { UserConfig } from '../types';
 

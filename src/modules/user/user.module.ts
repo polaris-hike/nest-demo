@@ -7,7 +7,7 @@ import { Configure } from '../config/configure';
 
 import { DatabaseModule } from '../database/database.module';
 
-import { addEntities } from '../database/helpers';
+import { addEntities, addSubscribers } from '../database/helpers';
 
 import * as controllers from './controllers';
 import * as entities from './entities';
@@ -15,13 +15,14 @@ import * as guards from './guards';
 import * as repositories from './repositories';
 import * as services from './services';
 import * as strategies from './strategies';
+import * as subscribers from './subscribers';
 
 @Module({})
 export class UserModule {
     static async forRoot(configure: Configure) {
         const providers: ModuleMetadata['providers'] = [
             ...Object.values(services),
-            // ...(await addSubscribers(configure,  Object.values(subscribers))),
+            ...(await addSubscribers(configure, Object.values(subscribers))),
             ...Object.values(strategies),
             ...Object.values(guards),
         ];
