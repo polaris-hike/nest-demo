@@ -1,6 +1,27 @@
-// src/modules/core/helpers/utils.ts
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import dayOfYear from 'dayjs/plugin/dayOfYear';
+import localeData from 'dayjs/plugin/localeData';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+// import chalk from 'chalk';
 import deepmerge from 'deepmerge';
 import { isNil } from 'lodash';
+
+import { Configure } from '@/modules/config/configure';
+
+import { AppConfig, PanicOption, TimeOptions } from '../types';
+
+dayjs.extend(localeData);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(advancedFormat);
+dayjs.extend(customParseFormat);
+dayjs.extend(dayOfYear);
 
 /**
  * 用于请求验证中的boolean数据转义
@@ -44,36 +65,42 @@ export const deepMerge = <T1, T2>(
     return deepmerge(x, y, options) as T2 extends T1 ? T1 : T1 & T2;
 };
 
-// 元旦假期想要做的事情：
-// mac 环境搭建完毕
-// 整理下公司的项目成为自己的项目
-// 学习nest.js
-// 搭建博客技术网站
-// 健身
+/**
+ * 判断一个函数是否为异步函数
+ * @param callback
+ */
+export function isAsyncFn<R, A extends Array<any>>(
+    callback: (...asgs: A) => Promise<R> | R,
+): callback is (...asgs: A) => Promise<R> {
+    const AsyncFunction = (async () => {}).constructor;
+    return callback instanceof AsyncFunction === true;
+}
 
-// 周五：
-// 明天早起跑步
-// 吃早餐喝咖啡
-// 早点去公司
-// 晚上早点下班买炸串回来吃
-// 然后 mac 环境初始化
+/**
+ * 获取一个dayjs时间对象
+ * @param configure
+ * @param options
+ */
+export const getTime = async (configure: Configure, options?: TimeOptions) => {
+    const { date, format, locale, strict, zonetime } = options ?? {};
+    const config = await configure.get<AppConfig>('app');
+    // 每次创建一个新的时间对象
+    // 如果没有传入local或timezone则使用应用配置
+    const now = dayjs(date, format, locale ?? config.locale, strict).clone();
+    return now.tz(zonetime ?? config.timezone);
+};
 
-// 周六
-// 早起跑步
-// 回来吃早餐可以自己做，也可以买
-// 上午在家里做运动，学习，打扫卫生
-// 中午吃火锅 下午逛优衣库然后回家
-// 晚上吃炒饭？煎饺？
-
-// 周日
-// 早起跑步
-// 回来吃早餐可以自己做，也可以买
-// 上午出去爬山
-// 中午吃铁锅炖
-// 下午回家休息
-
-// 周一
-// 早起跑步
-// 回来吃早餐可以自己做，也可以买
-// 看不良人电影，嗑瓜子
-// 学习健身
+/**
+ * 输出命令行错误消息
+ * @param option
+ */
+export async function panic(option: PanicOption | string) {
+    console.log();
+    if (typeof option === 'string') {
+        // console.log(chalk.red(`\n❌ ${option}`));
+        process.exit(1);
+    }
+    const { exit = true } = option;
+    // !isNil(error) ? console.log(chalk.red(error)) : console.log(chalk.red(`\n❌ ${message}`));
+    if (exit) process.exit(1);
+}
