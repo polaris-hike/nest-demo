@@ -19,5 +19,4 @@ export class RegisterDto extends PickType(UserCommonDto, [
     'username',
     'nickname',
     'password',
-    'plainPassword',
 ] as const) {}

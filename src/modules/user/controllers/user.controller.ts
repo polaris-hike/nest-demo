@@ -10,19 +10,16 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { Depends } from '@/modules/restful/decorators';
-
 import { DeleteWithTrashDto } from '@/modules/restful/dtos/delete-with-trash.dto';
 
 import { RestoreDto } from '@/modules/restful/dtos/restore.dto';
 
 import { Guest } from '../decorators/guest.decorator';
 import { UserService } from '../services';
-import { UserModule } from '../user.module';
 
 // src/modules/user/controllers/user.controller.ts
 @ApiTags('用户管理')
-@Depends(UserModule)
+// @Depends(UserModule)
 @Controller('users')
 export class UserController {
     constructor(protected service: UserService) {}

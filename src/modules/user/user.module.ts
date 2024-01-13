@@ -1,5 +1,5 @@
 // src/modules/user/user.module.ts
-import { Module } from '@nestjs/common';
+import { Module, ModuleMetadata } from '@nestjs/common';
 
 import { PassportModule } from '@nestjs/passport';
 
@@ -9,6 +9,7 @@ import { DatabaseModule } from '../database/database.module';
 
 import { addEntities } from '../database/helpers';
 
+import * as controllers from './controllers';
 import * as entities from './entities';
 import * as guards from './guards';
 import * as repositories from './repositories';
@@ -18,6 +19,12 @@ import * as strategies from './strategies';
 @Module({})
 export class UserModule {
     static async forRoot(configure: Configure) {
+        const providers: ModuleMetadata['providers'] = [
+            ...Object.values(services),
+            // ...(await addSubscribers(configure,  Object.values(subscribers))),
+            ...Object.values(strategies),
+            ...Object.values(guards),
+        ];
         return {
             module: UserModule,
             imports: [
@@ -26,12 +33,8 @@ export class UserModule {
                 addEntities(configure, Object.values(entities)),
                 DatabaseModule.forRepository(Object.values(repositories)),
             ],
-            providers: [
-                ...Object.values(services),
-                // ...(await addSubscribers(configure, Object.values(subscribers))),
-                ...Object.values(strategies),
-                ...Object.values(guards),
-            ],
+            controllers: Object.values(controllers),
+            providers,
             exports: [
                 ...Object.values(services),
                 DatabaseModule.forRepository(Object.values(repositories)),

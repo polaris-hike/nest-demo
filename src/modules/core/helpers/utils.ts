@@ -16,12 +16,27 @@ import { Configure } from '@/modules/config/configure';
 
 import { AppConfig, PanicOption, TimeOptions } from '../types';
 
+import { Module, ModuleMetadata, Type } from '@nestjs/common';
+
 dayjs.extend(localeData);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 dayjs.extend(customParseFormat);
 dayjs.extend(dayOfYear);
+/**
+ * 生成只包含字母的固定长度的字符串
+ * @param length
+ */
+export const getRandomCharString = (length: number) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+};
 
 /**
  * 用于请求验证中的boolean数据转义
@@ -103,4 +118,24 @@ export async function panic(option: PanicOption | string) {
     const { exit = true } = option;
     // !isNil(error) ? console.log(chalk.red(error)) : console.log(chalk.red(`\n❌ ${message}`));
     if (exit) process.exit(1);
+}
+
+/**
+ * 创建一个动态模块
+ * @param target
+ * @param metaSetter
+ */
+export function CreateModule(
+    target: string | Type<any>,
+    metaSetter: () => ModuleMetadata = () => ({}),
+): Type<any> {
+    let ModuleClass: Type<any>;
+    if (typeof target === 'string') {
+        ModuleClass = class {};
+        Object.defineProperty(ModuleClass, 'name', { value: target });
+    } else {
+        ModuleClass = target;
+    }
+    Module(metaSetter())(ModuleClass);
+    return ModuleClass;
 }

@@ -20,7 +20,7 @@ export class UpdateAccountDto extends PickType(UserCommonDto, ['username', 'nick
 /**
  * 更改用户密码
  */
-export class UpdatePasswordDto extends PickType(UserCommonDto, ['password', 'plainPassword']) {
+export class UpdatePasswordDto extends PickType(UserCommonDto, ['password']) {
     /**
      * 旧密码:用户在更改密码时需要输入的原密码
      */

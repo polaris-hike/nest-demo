@@ -2,7 +2,7 @@
 
 import { IsEmail, IsNotEmpty, IsOptional, Length } from 'class-validator';
 
-import { IsMatch, IsMatchPhone, IsPassword } from '@/modules/core/constraints';
+import { IsMatchPhone, IsPassword } from '@/modules/core/constraints';
 import { IsUnique, IsUniqueExist } from '@/modules/database/constraints';
 
 import { UserValidateGroups } from '../constants';
@@ -97,7 +97,7 @@ export class UserCommonDto {
     /**
      * 用户密码:密码必须由小写字母,大写字母,数字以及特殊字符组成
      */
-    @IsPassword(5, {
+    @IsPassword(4, {
         message: '密码必须由小写字母,大写字母,数字以及特殊字符组成',
         always: true,
     })
@@ -107,11 +107,4 @@ export class UserCommonDto {
     })
     @IsOptional({ groups: [UserValidateGroups.UPDATE] })
     password: string;
-
-    /**
-     * 确认密码:必须与用户密码输入相同的字符串
-     */
-    @IsMatch('password', false, { message: '两次输入密码不同', always: true })
-    @IsNotEmpty({ message: '请再次输入密码以确认', always: true })
-    plainPassword: string;
 }
